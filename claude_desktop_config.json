@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "git-assistant": {
+      "command": "./gradlew",
+      "args": ["runMcp", "-q", "--console=plain"],
+      "cwd": "/path/to/dev-assistant",
+      "env": {}
+    }
+  }
+}
