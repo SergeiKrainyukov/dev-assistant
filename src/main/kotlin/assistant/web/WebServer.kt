@@ -217,11 +217,11 @@ class WebServer {
                                                 +"Repository Status"
                                             }
                                             button {
-                                                onClick = "executeCommand('log', {count: 5})"
+                                                onClick = "executeCommand('log', {count: '5'})"
                                                 +"Recent Commits (5)"
                                             }
                                             button {
-                                                onClick = "executeCommand('log', {count: 10})"
+                                                onClick = "executeCommand('log', {count: '10'})"
                                                 +"Recent Commits (10)"
                                             }
                                         }
