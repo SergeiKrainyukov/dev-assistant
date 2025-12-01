@@ -1,6 +1,8 @@
 package assistant.web
 
-import assistant.mcp.GitMcpServer
+import assistant.Config
+import assistant.commands.HelpCommand
+import assistant.rag.DocumentStore
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
@@ -17,6 +19,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.*
 import java.io.BufferedReader
 import java.io.InputStreamReader
+import java.io.File
 
 /**
  * Веб-сервер для взаимодействия с ассистентом через браузер.
@@ -35,6 +38,17 @@ data class CommandResponse(
 )
 
 class WebServer {
+
+    private val config = Config.default()
+    private val store = DocumentStore(config)
+    private val helpCommand = HelpCommand(config, store)
+
+    init {
+        // Загружаем индекс при старте
+        if (File(config.indexPath).exists()) {
+            store.load()
+        }
+    }
 
     /**
      * Выполняет git команду через ProcessBuilder.
@@ -214,7 +228,26 @@ class WebServer {
                                     }
 
                                     div("command-section") {
-                                        h2 { +"🔍 Custom Command" }
+                                        h2 { +"💬 Chat with Assistant" }
+                                        div("input-group") {
+                                            input {
+                                                id = "chatInput"
+                                                type = InputType.text
+                                                placeholder = "Ask me about the project (e.g., 'how does RAG work?', 'explain the structure')"
+                                            }
+                                            button {
+                                                onClick = "executeChat()"
+                                                +"Ask"
+                                            }
+                                        }
+                                        p {
+                                            style = "margin-top: 8px; font-size: 12px; color: #666;"
+                                            +"💡 Tip: Ask questions about your project's documentation"
+                                        }
+                                    }
+
+                                    div("command-section") {
+                                        h2 { +"🔧 Custom Git Command" }
                                         div("input-group") {
                                             input {
                                                 id = "customCommand"
@@ -275,6 +308,14 @@ class WebServer {
                                             }
                                         }
 
+                                        function executeChat() {
+                                            const input = document.getElementById('chatInput');
+                                            const query = input.value.trim();
+                                            if (query) {
+                                                executeCommand('help', { query: query });
+                                            }
+                                        }
+
                                         function executeCustomCommand() {
                                             const input = document.getElementById('customCommand');
                                             const cmd = input.value.trim();
@@ -288,6 +329,10 @@ class WebServer {
                                                 executeCommand('custom', { cmd: cmd });
                                             }
                                         }
+
+                                        document.getElementById('chatInput').addEventListener('keypress', (e) => {
+                                            if (e.key === 'Enter') executeChat();
+                                        });
 
                                         document.getElementById('customCommand').addEventListener('keypress', (e) => {
                                             if (e.key === 'Enter') executeCustomCommand();
@@ -316,6 +361,15 @@ class WebServer {
                         "log" -> {
                             val count = request.args["count"] ?: "5"
                             executeGitCommand("log", "--oneline", "-n", count)
+                        }
+                        "help" -> {
+                            val query = request.args["query"] ?: ""
+                            try {
+                                val answer = helpCommand.execute(query)
+                                CommandResponse(success = true, result = answer)
+                            } catch (e: Exception) {
+                                CommandResponse(success = false, error = "Error: ${e.message}\n\nNote: Make sure Ollama is running (ollama serve) and index exists (./gradlew indexDocs)")
+                            }
                         }
                         "custom" -> {
                             val cmd = request.args["cmd"] ?: ""
