@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(gradle wrapper:*)",
+      "Bash(chmod:*)",
+      "Bash(tree:*)",
+      "Bash(kill:*)",
+      "Bash(./gradlew build:*)",
+      "Bash(./gradlew runMcp:*)",
+      "Bash(cat:*)",
+      "Bash(git add:*)",
+      "Bash(git commit -m \"$(cat <<''EOF''\nAdd Gradle wrapper and fix MCP server configuration\n\n- Generate Gradle wrapper files (gradlew, gradlew.bat)\n- Fix JSON parsing in GitMcpServer (add validation, use JsonNull)\n- Create run-mcp.sh wrapper script for Claude Desktop integration\n- Update claude_desktop_config.json with correct path\n- Improve .gitignore (add build/, *.log, .DS_Store)\n- Update README with Claude Desktop configuration instructions\n\nThe MCP server now works correctly with Claude Desktop and provides\ngit tools: git_branch, git_status, git_log.\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
+      "Bash(./gradlew runWeb:*)",
+      "Bash(curl:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

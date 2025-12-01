@@ -22,9 +22,14 @@ dependencies {
     implementation("io.ktor:ktor-client-cio:2.3.7")
     implementation("io.ktor:ktor-client-content-negotiation:2.3.7")
     implementation("io.ktor:ktor-serialization-kotlinx-json:2.3.7")
-    
-    // MCP Server (stdio-based)
+
+    // Web Server
     implementation("io.ktor:ktor-server-core:2.3.7")
+    implementation("io.ktor:ktor-server-netty:2.3.7")
+    implementation("io.ktor:ktor-server-content-negotiation:2.3.7")
+    implementation("io.ktor:ktor-server-cors:2.3.7")
+    implementation("io.ktor:ktor-server-html-builder:2.3.7")
+    implementation("ch.qos.logback:logback-classic:1.4.14")
     
     // Тестирование
     testImplementation(kotlin("test"))
@@ -56,4 +61,11 @@ tasks.register<JavaExec>("indexDocs") {
     mainClass.set("assistant.rag.IndexerKt")
     classpath = sourceSets["main"].runtimeClasspath
     args = listOf("project")
+}
+
+// Задача для запуска веб-сервера
+tasks.register<JavaExec>("runWeb") {
+    group = "application"
+    mainClass.set("assistant.web.WebServerKt")
+    classpath = sourceSets["main"].runtimeClasspath
 }
