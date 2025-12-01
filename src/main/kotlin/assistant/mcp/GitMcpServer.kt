@@ -1,5 +1,6 @@
 package assistant.mcp
 
+import kotlinx.serialization.SerializationException
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.*
@@ -35,18 +36,36 @@ class GitMcpServer {
         while (true) {
             val line = reader.readLine() ?: break
             if (line.isBlank()) continue
-            
+
             try {
+                // Проверяем что это валидный JSON перед парсингом
+                if (!line.trim().startsWith("{")) {
+                    System.err.println("Warning: Skipping non-JSON input: ${line.take(50)}")
+                    continue
+                }
+
                 val request = json.parseToJsonElement(line).jsonObject
                 val response = handleRequest(request)
                 writer.println(json.encodeToString(response))
-            } catch (e: Exception) {
+            } catch (e: SerializationException) {
+                System.err.println("JSON parse error: ${e.message}")
                 val errorResponse = buildJsonObject {
                     put("jsonrpc", "2.0")
-                    put("id", null as String?)
+                    put("id", JsonNull)
                     put("error", buildJsonObject {
                         put("code", -32700)
                         put("message", "Parse error: ${e.message}")
+                    })
+                }
+                writer.println(json.encodeToString(errorResponse))
+            } catch (e: Exception) {
+                System.err.println("Unexpected error: ${e.message}")
+                val errorResponse = buildJsonObject {
+                    put("jsonrpc", "2.0")
+                    put("id", JsonNull)
+                    put("error", buildJsonObject {
+                        put("code", -32603)
+                        put("message", "Internal error: ${e.message}")
                     })
                 }
                 writer.println(json.encodeToString(errorResponse))

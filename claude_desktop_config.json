@@ -1,9 +1,8 @@
 {
   "mcpServers": {
     "git-assistant": {
-      "command": "./gradlew",
-      "args": ["runMcp", "-q", "--console=plain"],
-      "cwd": "/path/to/dev-assistant",
+      "command": "/Users/sergeikrainyukov/Desktop/dev-assistant/run-mcp.sh",
+      "args": [],
       "env": {}
     }
   }

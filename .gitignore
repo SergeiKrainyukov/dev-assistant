@@ -1,2 +1,6 @@
 # Project exclude paths
 /.gradle/
+/build/
+*.log
+.DS_Store
+/data/index.json

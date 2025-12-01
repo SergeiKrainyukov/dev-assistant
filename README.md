@@ -83,6 +83,27 @@ GET /api/users/{id} - получение пользователя
 
 ## Конфигурация
 
+### Claude Desktop
+
+Скопируйте конфигурацию в `~/Library/Application Support/Claude/claude_desktop_config.json`:
+```json
+{
+  "mcpServers": {
+    "git-assistant": {
+      "command": "/Users/sergeikrainyukov/Desktop/dev-assistant/run-mcp.sh",
+      "args": [],
+      "env": {}
+    }
+  }
+}
+```
+
+**Важно:** Замените путь в `command` на актуальный абсолютный путь к файлу `run-mcp.sh` в вашем проекте.
+
+После изменения конфигурации перезапустите Claude Desktop.
+
+### LLM API (опционально)
+
 Файл `config.json`:
 ```json
 {
