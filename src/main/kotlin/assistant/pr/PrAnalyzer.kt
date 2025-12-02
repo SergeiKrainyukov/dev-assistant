@@ -213,10 +213,10 @@ class PrAnalyzer(private val config: Config) {
 
         // Проверка 1: Потенциальные уязвимости безопасности
         val securityPatterns = mapOf(
-            "eval(" to "Использование eval() может привести к выполнению произвольного кода",
-            "exec(" to "Использование exec() может быть небезопасным",
-            "Runtime.getRuntime()" to "Прямое использование Runtime может быть опасным",
-            ".innerHTML" to "Использование innerHTML может привести к XSS",
+            "eval\\(" to "Использование eval() может привести к выполнению произвольного кода",
+            "exec\\(" to "Использование exec() может быть небезопасным",
+            "Runtime\\.getRuntime\\(\\)" to "Прямое использование Runtime может быть опасным",
+            "\\.innerHTML" to "Использование innerHTML может привести к XSS",
             "dangerouslySetInnerHTML" to "Потенциальная XSS уязвимость",
             "SQL.*WHERE.*\\+" to "Возможная SQL injection уязвимость",
             "password.*=.*\"" to "Пароль в открытом виде в коде",
@@ -241,7 +241,7 @@ class PrAnalyzer(private val config: Config) {
 
         // Проверка 2: Потенциальные баги
         val bugPatterns = mapOf(
-            "if.*=.*" to "Возможно, вы имели в виду == вместо =",
+            "if.*=(?!=)" to "Возможно, вы имели в виду == вместо =",
             "for.*in.*range\\(0,\\s*len" to "Можно упростить используя enumerate()",
             "\\.equals\\(null\\)" to "Сравнение с null через equals может вызвать NPE",
             "catch.*\\{\\s*\\}" to "Пустой catch блок скрывает ошибки",
