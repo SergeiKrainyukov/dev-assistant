@@ -13,7 +13,10 @@
       "Bash(./gradlew runWeb:*)",
       "Bash(curl:*)",
       "Bash(git commit -m \"$(cat <<''EOF''\nAdd web interface for DevAssistant\n\n- Create Ktor web server with REST API\n- Add beautiful HTML/CSS/JS frontend with gradient design\n- Implement git command endpoints (branch, status, log)\n- Add support for custom git commands\n- Create run-web.sh launcher script\n- Update README with web interface documentation\n\nFeatures:\n- Real-time command execution\n- Color-coded success/error output\n- Responsive design with modern UI\n- No need for Claude Desktop\n\nAccess at: http://localhost:8080\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(ollama:*)",
+      "Bash(lsof:*)",
+      "Bash(xargs kill:*)"
     ],
     "deny": [],
     "ask": []

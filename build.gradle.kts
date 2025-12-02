@@ -70,7 +70,7 @@ tasks.register<JavaExec>("runWeb") {
     classpath = sourceSets["main"].runtimeClasspath
 }
 
-// Задача для анализа PR
+// Задача для анализа PR (локального)
 tasks.register<JavaExec>("analyzePr") {
     group = "application"
     mainClass.set("assistant.pr.PrAnalyzerCliKt")
@@ -92,4 +92,12 @@ tasks.register<JavaExec>("analyzePr") {
     if (project.hasProperty("output")) {
         args = (args ?: emptyList()) + "-Poutput=${project.property("output")}"
     }
+}
+
+// Задача для запуска GitHub MCP сервера
+tasks.register<JavaExec>("runGitHubMcp") {
+    group = "application"
+    mainClass.set("assistant.mcp.GitHubMcpServerKt")
+    classpath = sourceSets["main"].runtimeClasspath
+    standardInput = System.`in`
 }
