@@ -8,7 +8,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class Config(
     val llmApiUrl: String = "http://localhost:11434",
-    val llmModel: String = "llama3.2",
+    val llmModel: String = "qwen3:4b",
     val embeddingModel: String = "nomic-embed-text",
     val docsPath: String = "project",
     val indexPath: String = "data/index.json",
@@ -79,4 +79,11 @@ data class OllamaGenerateRequest(
 @Serializable
 data class OllamaGenerateResponse(
     val response: String
+)
+
+@Serializable
+data class OllamaStreamResponse(
+    val model: String? = null,
+    val response: String? = null,
+    val done: Boolean = false
 )
