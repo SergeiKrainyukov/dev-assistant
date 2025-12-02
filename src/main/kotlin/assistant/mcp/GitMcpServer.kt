@@ -138,6 +138,63 @@ class GitMcpServer {
                             })
                         })
                     })
+                    add(buildJsonObject {
+                        put("name", "git_diff")
+                        put("description", "Получает diff между двумя ветками или коммитами")
+                        put("inputSchema", buildJsonObject {
+                            put("type", "object")
+                            put("properties", buildJsonObject {
+                                put("base", buildJsonObject {
+                                    put("type", "string")
+                                    put("description", "Базовая ветка или коммит")
+                                    put("default", "main")
+                                })
+                                put("head", buildJsonObject {
+                                    put("type", "string")
+                                    put("description", "Сравниваемая ветка или коммит (по умолчанию текущая)")
+                                })
+                            })
+                        })
+                    })
+                    add(buildJsonObject {
+                        put("name", "git_show_file")
+                        put("description", "Показывает содержимое файла из репозитория")
+                        put("inputSchema", buildJsonObject {
+                            put("type", "object")
+                            put("properties", buildJsonObject {
+                                put("file", buildJsonObject {
+                                    put("type", "string")
+                                    put("description", "Путь к файлу")
+                                })
+                                put("ref", buildJsonObject {
+                                    put("type", "string")
+                                    put("description", "Ветка или коммит (по умолчанию HEAD)")
+                                    put("default", "HEAD")
+                                })
+                            })
+                            put("required", buildJsonArray {
+                                add("file")
+                            })
+                        })
+                    })
+                    add(buildJsonObject {
+                        put("name", "git_changed_files")
+                        put("description", "Получает список измененных файлов между ветками")
+                        put("inputSchema", buildJsonObject {
+                            put("type", "object")
+                            put("properties", buildJsonObject {
+                                put("base", buildJsonObject {
+                                    put("type", "string")
+                                    put("description", "Базовая ветка")
+                                    put("default", "main")
+                                })
+                                put("head", buildJsonObject {
+                                    put("type", "string")
+                                    put("description", "Сравниваемая ветка (по умолчанию текущая)")
+                                })
+                            })
+                        })
+                    })
                 })
             })
         }
@@ -146,11 +203,14 @@ class GitMcpServer {
     private fun handleToolCall(id: JsonElement?, params: JsonObject?): JsonObject {
         val toolName = params?.get("name")?.jsonPrimitive?.content ?: ""
         val arguments = params?.get("arguments")?.jsonObject ?: buildJsonObject {}
-        
+
         val result = when (toolName) {
             "git_branch" -> executeGitBranch()
             "git_status" -> executeGitStatus()
             "git_log" -> executeGitLog(arguments)
+            "git_diff" -> executeGitDiff(arguments)
+            "git_show_file" -> executeGitShowFile(arguments)
+            "git_changed_files" -> executeGitChangedFiles(arguments)
             else -> buildJsonObject {
                 put("error", "Unknown tool: $toolName")
             }
@@ -288,6 +348,129 @@ class GitMcpServer {
         }
     }
     
+    /**
+     * Получает diff между ветками.
+     */
+    private fun executeGitDiff(arguments: JsonObject): JsonObject {
+        val base = arguments["base"]?.jsonPrimitive?.content ?: "main"
+        val head = arguments["head"]?.jsonPrimitive?.content ?: getCurrentBranchName()
+
+        return try {
+            val process = ProcessBuilder("git", "diff", "$base...$head")
+                .redirectErrorStream(true)
+                .start()
+
+            val diff = process.inputStream.bufferedReader().readText()
+            process.waitFor()
+
+            buildJsonObject {
+                put("base", base)
+                put("head", head)
+                put("diff", diff)
+            }
+        } catch (e: Exception) {
+            buildJsonObject {
+                put("error", "Git not available: ${e.message}")
+                put("diff", "")
+            }
+        }
+    }
+
+    /**
+     * Показывает содержимое файла.
+     */
+    private fun executeGitShowFile(arguments: JsonObject): JsonObject {
+        val file = arguments["file"]?.jsonPrimitive?.content ?: ""
+        val ref = arguments["ref"]?.jsonPrimitive?.content ?: "HEAD"
+
+        if (file.isEmpty()) {
+            return buildJsonObject {
+                put("error", "File path is required")
+            }
+        }
+
+        return try {
+            val process = ProcessBuilder("git", "show", "$ref:$file")
+                .redirectErrorStream(true)
+                .start()
+
+            val content = process.inputStream.bufferedReader().readText()
+            val exitCode = process.waitFor()
+
+            if (exitCode == 0) {
+                buildJsonObject {
+                    put("file", file)
+                    put("ref", ref)
+                    put("content", content)
+                }
+            } else {
+                buildJsonObject {
+                    put("error", "File not found: $file at $ref")
+                    put("content", "")
+                }
+            }
+        } catch (e: Exception) {
+            buildJsonObject {
+                put("error", "Git not available: ${e.message}")
+                put("content", "")
+            }
+        }
+    }
+
+    /**
+     * Получает список измененных файлов.
+     */
+    private fun executeGitChangedFiles(arguments: JsonObject): JsonObject {
+        val base = arguments["base"]?.jsonPrimitive?.content ?: "main"
+        val head = arguments["head"]?.jsonPrimitive?.content ?: getCurrentBranchName()
+
+        return try {
+            val process = ProcessBuilder("git", "diff", "--name-status", "$base...$head")
+                .redirectErrorStream(true)
+                .start()
+
+            val output = process.inputStream.bufferedReader().readLines()
+            process.waitFor()
+
+            val files = output.mapNotNull { line ->
+                val parts = line.split("\t", limit = 2)
+                if (parts.size == 2) {
+                    buildJsonObject {
+                        put("status", parts[0])
+                        put("file", parts[1])
+                    }
+                } else null
+            }
+
+            buildJsonObject {
+                put("base", base)
+                put("head", head)
+                put("files", JsonArray(files))
+            }
+        } catch (e: Exception) {
+            buildJsonObject {
+                put("error", "Git not available: ${e.message}")
+                put("files", JsonArray(emptyList()))
+            }
+        }
+    }
+
+    /**
+     * Получает имя текущей ветки.
+     */
+    private fun getCurrentBranchName(): String {
+        return try {
+            val process = ProcessBuilder("git", "branch", "--show-current")
+                .redirectErrorStream(true)
+                .start()
+            val branch = process.inputStream.bufferedReader().readText().trim()
+            process.waitFor()
+            if (branch.isEmpty()) "HEAD" else branch
+        } catch (e: Exception) {
+            "HEAD"
+        }
+    }
+
     private fun buildErrorResponse(id: JsonElement?, code: Int, message: String): JsonObject {
         return buildJsonObject {
             put("jsonrpc", "2.0")

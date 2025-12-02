@@ -6,6 +6,7 @@ DevAssistant - это интеллектуальный ассистент для
 - **RAG (Retrieval-Augmented Generation)** для работы с документацией проекта
 - **MCP (Model Context Protocol)** для интеграции с git-репозиторием
 - **CLI интерфейс** с командой /help для получения помощи
+- **PR Analyzer** - автоматический анализ Pull Request с CI/CD интеграцией
 
 ## Структура проекта
 
@@ -13,18 +14,26 @@ DevAssistant - это интеллектуальный ассистент для
 dev-assistant/
 ├── src/main/kotlin/assistant/
 │   ├── Main.kt              # Точка входа CLI
+│   ├── pr/
+│   │   ├── PrAnalyzer.kt    # Анализатор Pull Request
+│   │   └── PrAnalyzerCli.kt # CLI для PR анализа
 │   ├── mcp/
-│   │   └── GitMcpServer.kt  # MCP сервер для git
+│   │   └── GitMcpServer.kt  # MCP сервер для git (расширен для PR)
 │   ├── rag/
 │   │   ├── DocumentStore.kt # Хранилище документов
 │   │   ├── Embeddings.kt    # Генерация эмбеддингов
 │   │   └── Indexer.kt       # Индексатор документов
-│   └── commands/
-│       └── HelpCommand.kt   # Обработчик /help
-├── project/                  # Демо-проект для индексации
-│   ├── docs/                 # Документация
-│   └── src/                  # Исходный код
-├── data/                     # Индекс RAG
+│   ├── commands/
+│   │   └── HelpCommand.kt   # Обработчик /help
+│   └── web/
+│       └── WebServer.kt     # Веб-интерфейс
+├── .github/workflows/
+│   └── pr-review.yml        # GitHub Actions для PR анализа
+├── project/                 # Демо-проект для индексации
+│   ├── docs/                # Документация
+│   └── src/                 # Исходный код
+├── data/                    # Индекс RAG
+├── analyze-pr.sh            # Скрипт для анализа PR
 └── build.gradle.kts
 ```
 
@@ -61,6 +70,21 @@ dev-assistant/
 ```
 
 Затем откройте в браузере: http://localhost:8080
+
+### Анализ Pull Request
+```bash
+# Локальный анализ
+./analyze-pr.sh
+
+# С параметрами
+./analyze-pr.sh feature-branch
+./analyze-pr.sh --base main --head feature
+
+# Через Gradle
+./gradlew analyzePr -Pbase=main -Phead=feature-branch
+```
+
+Подробная документация: [PR_ANALYZER.md](PR_ANALYZER.md)
 
 ## Использование
 
