@@ -18,6 +18,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0  # Получаем всю историю для diff
+          ref: ${{ github.event.pull_request.head.sha }}
 
       - name: Set up JDK 17
         uses: actions/setup-java@v4
@@ -48,10 +49,13 @@ jobs:
       - name: Analyze PR
         id: analyze
         run: |
-          # Анализируем изменения в PR
+          # Получаем базовую ветку
+          git fetch origin ${{ github.event.pull_request.base.ref }}
+
+          # Анализируем изменения в PR (сравниваем с origin/base)
           ./gradlew analyzePr \
-            -Pbase=${{ github.event.pull_request.base.ref }} \
-            -Phead=${{ github.event.pull_request.head.ref }} \
+            -Pbase=origin/${{ github.event.pull_request.base.ref }} \
+            -Phead=HEAD \
             -Pformat=text \
             -Poutput=pr-review.md
 
