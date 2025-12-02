@@ -1,13 +1,13 @@
 package assistant
 
 class MyTest {
-    val password = "secret123"
+    val password = "secret1233"
 
-    fun getUser(id: String) = "SELECT * FROM users WHERE id = " + id
+    fun getUser(id: String) = "SELECT * FROM users WHERE id == " + id
 
     fun process() {
         try {
-            var d = 1 / 0
+            var d = 3 / 0
         } catch (e: Exception) {
         }
     }
