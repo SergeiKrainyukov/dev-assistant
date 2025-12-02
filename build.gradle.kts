@@ -69,3 +69,27 @@ tasks.register<JavaExec>("runWeb") {
     mainClass.set("assistant.web.WebServerKt")
     classpath = sourceSets["main"].runtimeClasspath
 }
+
+// Задача для анализа PR
+tasks.register<JavaExec>("analyzePr") {
+    group = "application"
+    mainClass.set("assistant.pr.PrAnalyzerCliKt")
+    classpath = sourceSets["main"].runtimeClasspath
+
+    // Передаем системные свойства как аргументы
+    if (project.hasProperty("pr")) {
+        args = listOf("-Ppr=${project.property("pr")}")
+    }
+    if (project.hasProperty("base")) {
+        args = (args ?: emptyList()) + "-Pbase=${project.property("base")}"
+    }
+    if (project.hasProperty("head")) {
+        args = (args ?: emptyList()) + "-Phead=${project.property("head")}"
+    }
+    if (project.hasProperty("format")) {
+        args = (args ?: emptyList()) + "-Pformat=${project.property("format")}"
+    }
+    if (project.hasProperty("output")) {
+        args = (args ?: emptyList()) + "-Poutput=${project.property("output")}"
+    }
+}
